@@ -33,9 +33,9 @@ The explicit Hatch `only-include` lists in [pyproject.toml](pyproject.toml) are 
 
 The SDK repository is [KennyTangHK/ipguard-api](https://github.com/KennyTangHK/ipguard-api). Its default branch is `master`. Ordinary CI checks run on pushes to `master` and on pull requests.
 
-Before the first release, configure PyPI Trusted Publishing for the `ipguard-api` project. Use repository owner `KennyTangHK`, repository name `ipguard-api`, workflow filename `publish.yml`, and GitHub environment `pypi`. Configure the matching GitHub environment and its release approval and tag rules as appropriate. See [PyPI publisher setup](https://docs.pypi.org/trusted-publishers/adding-a-publisher/) or [creating a new PyPI project](https://docs.pypi.org/trusted-publishers/creating-a-project-through-oidc/). Confirm package-name availability and publisher ownership in the target account.
+The package is available on [PyPI](https://pypi.org/project/ipguard-api/). Releases use Trusted Publishing from `KennyTangHK/ipguard-api`, workflow `publish.yml`, and GitHub environment `pypi`. If the repository, workflow filename, or environment changes, update the [PyPI trusted publisher](https://docs.pypi.org/trusted-publishers/adding-a-publisher/) before the next release.
 
-When you have explicit authorization to release SDK changes:
+To publish a release:
 
 1. Set the intended version in [pyproject.toml](pyproject.toml). Run `uv lock` and the local checks. Use `X.Y.ZbN` for beta releases or `X.Y.Z` for stable releases. Review the lockfile change. A package version change must not silently upgrade external dependencies.
 2. Commit and push the reviewed changes to `master` in the independent SDK repository.
