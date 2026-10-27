@@ -37,9 +37,9 @@ The package is available on [PyPI](https://pypi.org/project/ipguard-api/). Relea
 
 To publish a release:
 
-1. Set the intended version in [pyproject.toml](pyproject.toml). Run `uv lock` and the local checks. Use `X.Y.ZbN` for beta releases or `X.Y.Z` for stable releases. Review the lockfile change. A package version change must not silently upgrade external dependencies.
+1. Set the intended `X.Y.Z` version in [pyproject.toml](pyproject.toml). Keep the beta notice and Beta development-status classifier while the project is in beta. Run `uv lock` and the local checks. Review the lockfile change. A package version change must not silently upgrade external dependencies.
 2. Commit and push the reviewed changes to `master` in the independent SDK repository.
-3. Push the matching `vX.Y.ZbN` or `vX.Y.Z` tag. The tag must match the committed package version exactly. Do not move or reuse a published tag or version.
+3. Push the matching `vX.Y.Z` tag. The tag must match the committed package version exactly. Do not move or reuse a published tag or version.
 
 The [publication workflow](.github/workflows/publish.yml) calls the checks workflow for the tagged commit. It downloads the three checked assets from that run. It then validates the event, tag, clean checkout, tested commit, remote tag, archive payloads, and hashes again. It stages only the two validated distribution archives for upload.
 

@@ -15,10 +15,10 @@ Use this software lawfully. Use it only with your own authorized account and wit
 Install from [PyPI](https://pypi.org/project/ipguard-api/):
 
 ```sh
-python -m pip install --pre ipguard-api
+python -m pip install ipguard-api
 ```
 
-The `--pre` option includes beta releases. See the [API guide](docs/USAGE.md) for account setup and examples.
+See the [API guide](docs/USAGE.md) for account setup and examples.
 
 ## Limitations
 
