@@ -1,0 +1,67 @@
+name: Publish to PyPI
+run-name: Publish SDK ${{ github.ref_name }}
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  checks:
+    uses: ./.github/workflows/checks.yml
+    with:
+      expected-tag: ${{ github.ref_name }}
+    permissions:
+      contents: read
+
+  publish:
+    needs: checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: pypi
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version-file: .python-version
+      - name: Download the tested archives from this workflow run
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: ${{ needs.checks.outputs.artifact-name }}
+          path: dist
+          digest-mismatch: error
+      - name: Verify release identity, bytes and checksums before staging
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+          EVENT_NAME: ${{ github.event_name }}
+          REF_TYPE: ${{ github.ref_type }}
+          REF_NAME: ${{ github.ref_name }}
+          EVENT_SHA: ${{ github.sha }}
+          TESTED_SHA: ${{ needs.checks.outputs.tested-commit }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          python -m scripts.release_metadata --publish-ready --tag "$RELEASE_TAG" \
+            --event-name "$EVENT_NAME" --ref-type "$REF_TYPE" --ref-name "$REF_NAME" \
+            --event-sha "$EVENT_SHA" --tested-sha "$TESTED_SHA" --repository "$REPOSITORY" \
+            --dist dist --upload-dir upload
+      - name: Publish the verified archives with Trusted Publishing
+        uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # v1.14.2
+        with:
+          packages-dir: upload/
+          attestations: true
+          skip-existing: false

@@ -1,0 +1,96 @@
+[build-system]
+requires = ["hatchling==1.32.4"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ipguard-api"
+version = "0.1.0b6"
+description = "Typed asynchronous client for the IPGUARD cloud service"
+readme = "README.md"
+requires-python = ">=3.14.2,<3.15"
+license = "Apache-2.0"
+dependencies = ["pyzmq>=27.2.0,<28"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Programming Language :: Python :: 3.14",
+    "Typing :: Typed",
+]
+
+[project.urls]
+Repository = "https://github.com/KennyTangHK/ipguard-api"
+Issues = "https://github.com/KennyTangHK/ipguard-api/issues"
+Documentation = "https://github.com/KennyTangHK/ipguard-api/blob/master/docs/USAGE.md"
+
+[tool.hatch.build.targets.wheel]
+only-include = [
+    "src/ipguard_api/__init__.py",
+    "src/ipguard_api/client.py",
+    "src/ipguard_api/errors.py",
+    "src/ipguard_api/models.py",
+    "src/ipguard_api/protocol.py",
+    "src/ipguard_api/py.typed",
+    "src/ipguard_api/transport.py",
+    "src/ipguard_api/validation.py",
+]
+sources = ["src"]
+
+[tool.hatch.build.targets.sdist]
+only-include = [
+    "src/ipguard_api/__init__.py",
+    "src/ipguard_api/client.py",
+    "src/ipguard_api/errors.py",
+    "src/ipguard_api/models.py",
+    "src/ipguard_api/protocol.py",
+    "src/ipguard_api/py.typed",
+    "src/ipguard_api/transport.py",
+    "src/ipguard_api/validation.py",
+    "tests/test_cloud.py",
+    "tests/test_contract.py",
+    "tests/test_protocol.py",
+    "tests/test_packaging.py",
+    "tests/test_network_guard.py",
+    "scripts/packaging_policy.py",
+    "scripts/release_metadata.py",
+    "conftest.py",
+    ".gitignore",
+    ".python-version",
+    "uv.toml",
+    "uv.lock",
+    "build-constraints.txt",
+    "DEVELOPMENT.md",
+    "docs/USAGE.md",
+    "README.md",
+    "LICENSE",
+    "pyproject.toml",
+]
+
+[dependency-groups]
+dev = [
+    "hatchling==1.32.4",
+    "mypy==2.4.0",
+    "pytest==9.0.3",
+    "pytest-asyncio==1.4.0",
+    "ruff==0.16.10",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+addopts = "-ra --strict-config --strict-markers"
+
+[tool.ruff]
+target-version = "py314"
+line-length = 88
+extend-exclude = [".cache", ".venv", "dist"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "ASYNC"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.14"
+strict = true
+explicit_package_bases = true
+files = ["src/ipguard_api", "scripts", "conftest.py"]
+exclude = ["dist", ".cache", ".venv"]

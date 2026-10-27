@@ -1,0 +1,2 @@
+# Keep development caches inside this workspace; no global Python changes needed.
+cache-dir = ".cache/uv"

@@ -1,0 +1,100 @@
+name: Checks
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_call:
+    inputs:
+      expected-tag:
+        required: false
+        default: ""
+        type: string
+    outputs:
+      version:
+        value: ${{ jobs.checks.outputs.version }}
+      artifact-name:
+        value: ${{ jobs.checks.outputs.artifact-name }}
+      tested-commit:
+        value: ${{ jobs.checks.outputs.tested-commit }}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: checks-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ inputs.expected-tag == '' }}
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    outputs:
+      version: ${{ steps.metadata.outputs.version }}
+      artifact-name: ${{ steps.artifact.outputs.name }}
+      tested-commit: ${{ steps.commit.outputs.sha }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version-file: .python-version
+      - name: Bind checkout to the event commit
+        id: commit
+        env:
+          EVENT_SHA: ${{ github.sha }}
+        run: |
+          checkout_sha="$(git rev-parse HEAD)"
+          [[ "$checkout_sha" == "$EVENT_SHA" ]]
+          echo "sha=$checkout_sha" >> "$GITHUB_OUTPUT"
+      - name: Validate project and release identity
+        id: metadata
+        env:
+          RELEASE_TAG: ${{ inputs.expected-tag }}
+          EVENT_NAME: ${{ github.event_name }}
+          REF_TYPE: ${{ github.ref_type }}
+          REF_NAME: ${{ github.ref_name }}
+          EVENT_SHA: ${{ github.sha }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          python -m scripts.release_metadata --tag "$RELEASE_TAG" \
+            --event-name "$EVENT_NAME" --ref-type "$REF_TYPE" --ref-name "$REF_NAME" \
+            --event-sha "$EVENT_SHA" --tested-sha "$EVENT_SHA" --repository "$REPOSITORY" \
+            --github-output "$GITHUB_OUTPUT"
+      - name: Validate workflow syntax
+        run: |
+          curl --fail --location --retry 3 \
+            --output "$RUNNER_TEMP/actionlint.tar.gz" \
+            https://github.com/rhysd/actionlint/releases/download/v1.7.12/actionlint_1.7.12_linux_amd64.tar.gz
+          echo "8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8  $RUNNER_TEMP/actionlint.tar.gz" | sha256sum --check
+          tar --extract --gzip --file "$RUNNER_TEMP/actionlint.tar.gz" --directory "$RUNNER_TEMP" actionlint
+          "$RUNNER_TEMP/actionlint" -color
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          version: "0.12.24"
+          enable-cache: true
+      - run: uv sync --locked
+      - run: uv run --no-sync ruff check .
+      - run: uv run --no-sync ruff format --check .
+      - run: uv run --no-sync mypy
+      - run: uv run --no-sync pytest
+      - run: uv build --build-constraints build-constraints.txt --require-hashes
+      - run: python -m scripts.release_metadata --dist dist --write-checksums
+      - name: Set checked artifact name
+        if: inputs.expected-tag != ''
+        id: artifact
+        run: echo "name=ipguard-api-dist-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT" >> "$GITHUB_OUTPUT"
+      - name: Upload checked SDK archives and checksums
+        if: inputs.expected-tag != ''
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ${{ steps.artifact.outputs.name }}
+          path: |
+            dist/ipguard_api-${{ steps.metadata.outputs.version }}-py3-none-any.whl
+            dist/ipguard_api-${{ steps.metadata.outputs.version }}.tar.gz
+            dist/SHA256SUMS
+          if-no-files-found: error
+          retention-days: 14
