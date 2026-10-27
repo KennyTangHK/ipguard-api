@@ -26,7 +26,7 @@ See the [API guide](docs/USAGE.md) for account setup and examples.
 
 Incoming-call notifications are passive by default. Set `auto_hangup=True` to make one immediate hangup attempt after a notification. This is intended to trigger carrier-call fallback sooner. The provider and account configuration determine the actual routing and timing.
 
-Enrollment uses unencrypted TCP, including retrieval of the server public key. The authenticated connection then uses ZeroMQ CURVE. A door-release acknowledgement does not confirm that the physical door opened. See [transport and logging](docs/USAGE.md#transport-and-logging) for details. Tests use synthetic accounts and do not establish current provider acceptance or physical door outcomes.
+Enrollment uses unencrypted TCP. A door-release acknowledgement does not confirm that the physical door opened. See [protocol behavior and limits](docs/PROTOCOL.md) for transport security, supported behavior and verification limits.
 
 ## Development
 

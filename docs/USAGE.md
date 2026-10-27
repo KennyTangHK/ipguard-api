@@ -81,7 +81,7 @@ Video calling and camera streaming are not supported. The SDK has no API to reta
 
 ### Automatic hangup
 
-`IpguardClient(auto_hangup=True)` enables one immediate hangup attempt after each fresh, validated incoming-call notification. This is intended to trigger carrier-call fallback sooner. The provider and account configuration determine the actual routing and timing. The standalone SDK defaults to `auto_hangup=False`. In that mode, it gives incoming-call notifications without sending a hangup. Home Assistant has an **Auto hangup** option for each account. It is enabled by default. Find it under **Settings → Devices & services → IPGUARD → Configure**.
+`IpguardClient(auto_hangup=True)` enables one immediate hangup attempt after each fresh, validated incoming-call notification. This is intended to trigger carrier-call fallback sooner. The provider and account configuration determine the actual routing and timing. The SDK defaults to `auto_hangup=False`. In that mode, it gives incoming-call notifications without sending a hangup. Applications enable this option separately for each client.
 
 An attempt requires a current call, connection, and installation. The client skips busy, stale, disconnected, or superseded attempts. Call termination, disconnect, or shutdown cancels pending work. The client does not queue or replay attempts. It does not retry a send with an uncertain outcome. Duplicate suppression stays available across reconnects for the same installation. It does not persist after the client closes or the process restarts. The SDK has no manual hangup or call-answering API.
 
@@ -97,7 +97,7 @@ The SDK checks the current permission and rejects a concurrent release for the s
 
 ## Transport and logging
 
-The default activation endpoint is `tcp://zmq.campiserveur.com:5579`. The default secure messaging endpoint is `tcp://zmq.campiserveur.com:5577`. Activation uses unencrypted TCP, including for retrieval of the server public key. CURVE protects the subsequent authenticated connection. The client does not implement an encrypted enrollment fallback. Do not disable CURVE authentication to work around handshake failures.
+For the default endpoints and enrollment security, see [Transport security](PROTOCOL.md#transport-security). Do not disable CURVE authentication to work around connection failures.
 
 The constructor accepts test endpoints, `timeout`, `reconnect_delay`, and `max_reconnect_delay`. Saved sessions retain their endpoints.
 
